@@ -55,7 +55,7 @@ public class OAuth2SuccessHandler
                 new CustomUserDetails(user));
 
         response.sendRedirect(
-                "http://localhost:5173/oauth-success?token=" + token);
+                "https://wheatd.netlify.app/oauth-success?token=" + token);
 
     }
 }
