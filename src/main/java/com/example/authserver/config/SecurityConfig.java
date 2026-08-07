@@ -2,18 +2,16 @@ package com.example.authserver.config;
 
 import com.example.authserver.jwt.JwtAuthenticationFilter;
 import com.example.authserver.oauth.OAuth2SuccessHandler;
-import java.net.HttpRetryException;
 
-import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.w3c.dom.css.CSSFontFaceRule;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,48 +19,66 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-	private final OAuth2SuccessHandler OAuth2SuccessHandler;
-	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2SuccessHandler oauth2SuccessHandler;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-	 @Bean
-	    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
-	            throws Exception {
 
-	        return configuration.getAuthenticationManager();
-	    }
+    @Bean
+    AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration)
+            throws Exception {
 
-	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http)
-	        throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 
-	    http
 
-	            .csrf(csrf -> csrf.disable())
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
 
-	            .authorizeHttpRequests(auth -> auth
+        http
+            .csrf(csrf -> csrf.disable())
 
-	                    .requestMatchers(
-	                    		"/api/auth/**",
-	    						"/api/swagger-ui/index.html",
-	    						"/api/swagger-ui/**"
-	                    ).permitAll()
+            .cors(Customizer.withDefaults())
 
-	                    .anyRequest().authenticated()
+            .authorizeHttpRequests(auth -> auth
 
-	            )
+                // Allow preflight requests
+                .requestMatchers(HttpMethod.OPTIONS, "/**")
+                .permitAll()
 
-	            .oauth2Login(oauth -> oauth
+                // Public APIs
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/oauth2/**",
+                        "/login/**",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
+                )
+                .permitAll()
 
-	                    .successHandler(OAuth2SuccessHandler)
+                // Everything else requires JWT
+                .anyRequest()
+                .authenticated()
+            )
 
-	            )
-	            .addFilterBefore(
-	                    jwtAuthenticationFilter,
-	                    UsernamePasswordAuthenticationFilter.class
-	            )
-	            .httpBasic(httpBasic -> httpBasic.disable());
 
-	    return http.build();
+            .oauth2Login(oauth ->
+                oauth.successHandler(oauth2SuccessHandler)
+            )
 
-	}
+
+            .addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+            )
+
+
+            .httpBasic(httpBasic ->
+                httpBasic.disable()
+            );
+
+
+        return http.build();
+    }
 }

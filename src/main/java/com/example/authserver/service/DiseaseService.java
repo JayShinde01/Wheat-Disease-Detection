@@ -6,6 +6,7 @@ import com.example.authserver.dto.response.FlaskPredictionResponse;
 import com.example.authserver.entity.DiseaseDetection;
 import com.example.authserver.entity.User;
 import com.example.authserver.repository.DiseaseDetectionRepository;
+import com.example.authserver.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,9 +18,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DiseaseService {
 
-    private final MlPredictionClient mlPredictionClient;
+    private final UserRepo userRepo;
+	private final MlPredictionClient mlPredictionClient;
     private final CloudinaryService cloudinaryService;
     private final DiseaseDetectionRepository diseaseDetectionRepository;
+
+	
 
     public DiseasePredictionResponse detectDisease(
             MultipartFile file,
@@ -52,8 +56,10 @@ public class DiseaseService {
                 .imageUrl(imageUrl)
                 .build();
     }
-    public List<DiseaseDetection> getDetectionByUserId(Integer id) {
+
+	public List<DiseaseDetection> getDetectionByUserId(Integer id) {
+		
 		return diseaseDetectionRepository.findByUserId(id);
-				
 	}
+    
 }
