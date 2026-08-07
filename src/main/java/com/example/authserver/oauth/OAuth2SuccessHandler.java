@@ -1,6 +1,8 @@
 package com.example.authserver.oauth;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -13,7 +15,6 @@ import com.example.authserver.enums.Role;
 import com.example.authserver.jwt.JwtService;
 import com.example.authserver.repository.UserRepo;
 import com.example.authserver.security.CustomUserDetails;
-import com.example.authserver.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,8 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class OAuth2SuccessHandler
-        extends SimpleUrlAuthenticationSuccessHandler {
+public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final UserRepo repository;
     private final JwtService jwtService;
@@ -34,8 +34,7 @@ public class OAuth2SuccessHandler
             Authentication authentication)
             throws IOException {
 
-        OAuth2User oAuth2User =
-                (OAuth2User) authentication.getPrincipal();
+        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
@@ -51,11 +50,14 @@ public class OAuth2SuccessHandler
                                 .build()
                 ));
 
-        String token = jwtService.generateToken(
-                new CustomUserDetails(user));
+        String token = jwtService.generateToken(new CustomUserDetails(user));
 
-        response.sendRedirect(
-                "https://wheatd.netlify.app/oauth-success?token=" + token);
+        String redirectUrl =
+                "https://wheatd.netlify.app/oauth-success"
+                        + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8)
+                        + "&email=" + URLEncoder.encode(user.getEmail(), StandardCharsets.UTF_8)
+                        + "&name=" + URLEncoder.encode(user.getName(), StandardCharsets.UTF_8);
 
+        response.sendRedirect(redirectUrl);
     }
 }
