@@ -1,8 +1,11 @@
 package com.example.authserver.controller;
 
-import com.example.authserver.dto.response.FlaskPredictionResponse;
+import com.example.authserver.dto.response.DiseasePredictionResponse;
+import com.example.authserver.entity.User;
+import com.example.authserver.security.CustomUserDetails;
 import com.example.authserver.service.DiseaseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,20 +15,35 @@ import org.springframework.web.multipart.MultipartFile;
 @CrossOrigin(origins = "*")
 public class DiseaseController {
 
-    private final DiseaseService service;
+    private final DiseaseService diseaseService;
 
     @PostMapping(
-            value="/predict",
+            value = "/predict",
             consumes = "multipart/form-data"
     )
-    public FlaskPredictionResponse predict(
+    public DiseasePredictionResponse predict(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication
+    ) throws Exception {
 
-            @RequestParam MultipartFile file)
 
-            throws Exception {
+        if(authentication == null){
+            throw new RuntimeException(
+                "User not authenticated"
+            );
+        }
 
-        return service.detectDisease(file);
 
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
+
+
+        User user = userDetails.getUser();
+
+
+        return diseaseService.detectDisease(
+                file,
+                user
+        );
     }
-
 }
