@@ -1,5 +1,6 @@
 package com.example.authserver.config;
 
+import com.example.authserver.jwt.JwtAuthenticationFilter;
 import com.example.authserver.oauth.OAuth2SuccessHandler;
 import java.net.HttpRetryException;
 
@@ -11,6 +12,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.w3c.dom.css.CSSFontFaceRule;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 
 	private final OAuth2SuccessHandler OAuth2SuccessHandler;
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 	 @Bean
 	    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
@@ -44,7 +47,7 @@ public class SecurityConfig {
 	    						"/api/swagger-ui/**"
 	                    ).permitAll()
 
-	                    .anyRequest().permitAll()
+	                    .anyRequest().authenticated()
 
 	            )
 
@@ -53,7 +56,10 @@ public class SecurityConfig {
 	                    .successHandler(OAuth2SuccessHandler)
 
 	            )
-
+	            .addFilterBefore(
+	                    jwtAuthenticationFilter,
+	                    UsernamePasswordAuthenticationFilter.class
+	            )
 	            .httpBasic(httpBasic -> httpBasic.disable());
 
 	    return http.build();

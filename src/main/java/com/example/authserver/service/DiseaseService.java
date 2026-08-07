@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -51,4 +52,8 @@ public class DiseaseService {
                 .imageUrl(imageUrl)
                 .build();
     }
+    public List<DiseaseDetection> getDetectionByUserId(Integer id) {
+		return diseaseDetectionRepository.findByUserId(id);
+				
+	}
 }
