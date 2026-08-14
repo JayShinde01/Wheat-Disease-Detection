@@ -44,8 +44,8 @@ public class AuthServiceImpl implements AuthService {
 			if(user.getPassword() != null)
 			return null;
 			
-			user.setPassword(request.getPassword());
-			return user;
+			user.setPassword(passwordEncoder.encode(request.getPassword()));
+			return userRepo.save(user);
 		}
 		User user = User.builder()
 				.email(request.getEmail())
