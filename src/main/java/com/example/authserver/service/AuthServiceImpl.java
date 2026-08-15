@@ -18,11 +18,18 @@ import com.example.authserver.entity.User;
 import com.example.authserver.enums.Provider;
 import com.example.authserver.enums.Role;
 import com.example.authserver.jwt.JwtService;
+import com.example.authserver.repository.PasswordResetTokenRepository;
 import com.example.authserver.repository.UserRepo;
 import com.example.authserver.security.CustomUserDetails;
 
 import lombok.RequiredArgsConstructor;
+import com.example.authserver.dto.request.ForgotPasswordRequest;
+import com.example.authserver.dto.request.ResetPasswordRequest;
+import com.example.authserver.entity.PasswordResetToken;
+import com.example.authserver.repository.PasswordResetTokenRepository;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +40,9 @@ public class AuthServiceImpl implements AuthService {
 	private final JwtService jwtService;
 
 	private final PasswordEncoder passwordEncoder;
-	
+	private final PasswordResetTokenRepository passwordResetTokenRepository;
+
+private final EmailService emailService;
 	
 	@Override
 	public User register(RegisterRequest request) {
@@ -99,6 +108,93 @@ public class AuthServiceImpl implements AuthService {
 	            new CustomUserDetails(user)
 	    );
 
+	}
+	@Override
+	public void forgotPassword(
+	        ForgotPasswordRequest request) {
+
+	    Optional<User> optionalUser =
+	            userRepo.findByEmail(request.getEmail());
+
+	    if (optionalUser.isEmpty()) {
+
+	        // Don't reveal whether email exists
+	        return;
+	    }
+
+	    User user = optionalUser.get();
+
+	    String token =
+	            UUID.randomUUID().toString();
+
+	    PasswordResetToken resetToken =
+	            PasswordResetToken.builder()
+	                    .token(token)
+	                    .user(user)
+	                    .expiresAt(
+	                            LocalDateTime.now()
+	                                    .plusMinutes(15)
+	                    )
+	                    .used(false)
+	                    .build();
+
+	    passwordResetTokenRepository.save(resetToken);
+
+	    String resetLink =
+	            "http://localhost:5173/reset-password?token="
+	                    + token;
+
+	    emailService.sendPasswordResetEmail(
+	            user.getEmail(),
+	            resetLink
+	    );
+	}
+	@Override
+	public void resetPassword(
+	        ResetPasswordRequest request) {
+
+	    PasswordResetToken resetToken =
+	            passwordResetTokenRepository
+	                    .findByToken(request.getToken())
+	                    .orElseThrow(() ->
+	                            new RuntimeException(
+	                                    "Invalid reset token"
+	                            )
+	                    );
+
+	    if (resetToken.isUsed()) {
+
+	        throw new RuntimeException(
+	                "Reset token has already been used"
+	        );
+	    }
+
+	    if (
+	        resetToken.getExpiresAt()
+	                .isBefore(LocalDateTime.now())
+	    ) {
+
+	        throw new RuntimeException(
+	                "Reset token has expired"
+	        );
+	    }
+
+	    User user =
+	            resetToken.getUser();
+
+	    user.setPassword(
+	            passwordEncoder.encode(
+	                    request.getPassword()
+	            )
+	    );
+
+	    userRepo.save(user);
+
+	    resetToken.setUsed(true);
+
+	    passwordResetTokenRepository.save(
+	            resetToken
+	    );
 	}
 
 }
