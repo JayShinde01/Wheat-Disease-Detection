@@ -3,6 +3,7 @@ package com.example.authserver.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -42,8 +43,9 @@ public class AuthServiceImpl implements AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final PasswordResetTokenRepository passwordResetTokenRepository;
 
-private final EmailService emailService;
-	
+    private final EmailService emailService;
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
 	@Override
 	public User register(RegisterRequest request) {
 		Optional<User> op = userRepo.findByEmail(request.getEmail());
@@ -110,25 +112,18 @@ private final EmailService emailService;
 
 	}
 	@Override
-	public void forgotPassword(
-	        ForgotPasswordRequest request) {
+	public void forgotPassword(ForgotPasswordRequest request) {
 
-	    Optional<User> optionalUser =
-	            userRepo.findByEmail(request.getEmail());
+	    Optional<User> optionalUser = userRepo.findByEmail(request.getEmail());
 
-	    if (optionalUser.isEmpty()) {
-
-	        // Don't reveal whether email exists
-	        return;
-	    }
+	    if (optionalUser.isEmpty())return;
+	    
 
 	    User user = optionalUser.get();
 
-	    String token =
-	            UUID.randomUUID().toString();
+	    String token = UUID.randomUUID().toString();
 
-	    PasswordResetToken resetToken =
-	            PasswordResetToken.builder()
+	    PasswordResetToken resetToken = PasswordResetToken.builder()
 	                    .token(token)
 	                    .user(user)
 	                    .expiresAt(
@@ -140,9 +135,9 @@ private final EmailService emailService;
 
 	    passwordResetTokenRepository.save(resetToken);
 
-	    String resetLink =
-	            "http://localhost:5173/reset-password?token="
-	                    + token;
+	    String resetLink = frontendUrl 
+	    		           + "/reset-password?token="
+	                       + token;
 
 	    emailService.sendPasswordResetEmail(
 	            user.getEmail(),

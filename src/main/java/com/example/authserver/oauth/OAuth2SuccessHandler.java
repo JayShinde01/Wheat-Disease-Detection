@@ -2,6 +2,7 @@ package com.example.authserver.oauth;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -26,7 +27,8 @@ public class OAuth2SuccessHandler
 
     private final UserRepo repository;
     private final JwtService jwtService;
-
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
     @Override
     public void onAuthenticationSuccess(
             HttpServletRequest request,
@@ -55,7 +57,7 @@ public class OAuth2SuccessHandler
                 new CustomUserDetails(user));
 
         response.sendRedirect(
-                "https://wheatd.netlify.app/oauth-success"
+        				frontendUrl
                         + "?token=" + token
                         + "&email=" + java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8)
         );
