@@ -27,8 +27,9 @@ public class OAuth2SuccessHandler
 
     private final UserRepo repository;
     private final JwtService jwtService;
+    
     @Value("${app.frontend-url}")
-    private String frontendUrl;
+    private String frontendUrl ;
     @Override
     public void onAuthenticationSuccess(
             HttpServletRequest request,
@@ -57,9 +58,13 @@ public class OAuth2SuccessHandler
                 new CustomUserDetails(user));
 
         response.sendRedirect(
-        				frontendUrl
-                        + "?token=" + token
-                        + "&email=" + java.net.URLEncoder.encode(email, java.nio.charset.StandardCharsets.UTF_8)
+                frontendUrl
+                + "/oauth-success"
+                + "?token=" + token
+                + "&email=" + java.net.URLEncoder.encode(
+                        email,
+                        java.nio.charset.StandardCharsets.UTF_8
+                )
         );
 
     }
