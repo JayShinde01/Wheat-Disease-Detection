@@ -61,5 +61,10 @@ public class DiseaseService {
 		
 		return diseaseDetectionRepository.findByUserId(id);
 	}
+	
+	public List<DiseaseDetection> getAllDetection() {
+		
+		return diseaseDetectionRepository.findAll();
+	}
     
 }

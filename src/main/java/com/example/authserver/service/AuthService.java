@@ -1,5 +1,7 @@
 package com.example.authserver.service;
 
+import java.util.List;
+
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.example.authserver.dto.request.ForgotPasswordRequest;
@@ -21,5 +23,9 @@ public interface AuthService {
     void resetPassword(
             ResetPasswordRequest request
     );
+    public String extractRole(String token) ;
+    public String extractUsername(String token) ;
+        
+    List<User> getAllUsers(); 
 
 }

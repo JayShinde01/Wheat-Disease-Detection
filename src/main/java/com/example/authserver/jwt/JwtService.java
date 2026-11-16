@@ -44,7 +44,12 @@ public class JwtService {
                 .signWith(getSigningKey())
                 .compact();
     }
-
+    
+    
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+    
     /**
      * Extract Username (Email)
      */

@@ -63,4 +63,8 @@ public class DiseaseController {
     	if(ls.isEmpty())return ResponseEntity.internalServerError().body("No detection found for this user");
     	return ResponseEntity.status(200).body(ls);
     }
+    @GetMapping("/all")	
+    public List<DiseaseDetection> getAllDetections() {
+		return diseaseService.getAllDetection();
+	}
 }

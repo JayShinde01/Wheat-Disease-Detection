@@ -1,5 +1,6 @@
 package com.example.authserver.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -190,6 +191,23 @@ public class AuthServiceImpl implements AuthService {
 	    passwordResetTokenRepository.save(
 	            resetToken
 	    );
+	}
+
+	public String extractRole(String token) {
+        return jwtService.extractRole(token);
+    }
+
+	@Override
+	public List<User> getAllUsers() {
+		
+		return userRepo.findAll();
+	}
+
+
+	@Override
+	public String extractUsername(String token) {
+		// TODO Auto-generated method stub
+		return jwtService.extractUsername(token);
 	}
 
 }
